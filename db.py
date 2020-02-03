@@ -1,8 +1,8 @@
 import sqlite3
 
 
-def settup():
-    with sqlite3.connect("database.db") as conn:
+def setup():
+    with sqlite3.connect("./data/database.sqlite3") as conn:
         cur = conn.cursor()
         cur.execute('''CREATE TABLE IF NOT EXISTS request_history (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -13,7 +13,7 @@ def settup():
 
 
 def write(request, body, creation_date):
-    with sqlite3.connect("database.db") as conn:
+    with sqlite3.connect("./data/database.sqlite3") as conn:
         cur = conn.cursor()
         cur.execute('''INSERT or REPLACE INTO request_history
             ('request', 'body', 'creation_date')
@@ -22,7 +22,7 @@ def write(request, body, creation_date):
 
 
 def get_request(request, boundary_date):
-    with sqlite3.connect("database.db") as conn:
+    with sqlite3.connect("./data/database.sqlite3") as conn:
         cur = conn.cursor()
         data = cur.execute('''SELECT body FROM request_history
             WHERE request=? and creation_date>?;''',

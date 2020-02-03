@@ -1,0 +1,12 @@
+version: '3.5'
+
+services:
+  bot_app:
+    build: .
+    restart: always
+    volumes:
+      - ./data:/app/data
+    environment:
+      - TELEGRAM_KEY=${TELEGRAM_KEY}
+    ports:
+      - "1080:1080"

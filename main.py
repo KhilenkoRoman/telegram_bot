@@ -5,12 +5,16 @@ import datetime
 import requests
 import json
 import re
+from plot import history_plot
+import io
+from dotenv import load_dotenv
 
+load_dotenv()
 KEY = os.environ.get('TELEGRAM_KEY')
 TIME_THRESHOLD = datetime.datetime.now() - datetime.timedelta(days=7)
 
 bot = telebot.TeleBot(KEY)
-db.settup()
+db.setup()
 
 
 @bot.message_handler(commands=['list', 'lst'])
@@ -96,44 +100,16 @@ def rate_history(message):
         bot.reply_to(message.chat.id, "Response decode error")
         return
 
-    print(data)
-    print(sorted([(k, v.get(cur2)) for k, v in data['rates'].items()], key=lambda x: x[0]))
-    #
-    # if data.get('rates'):
-    #     bot.send_message(message.chat.id, '$ {:.2f}'.format(value * float(data.get('rates')[currency])))
+    plot = history_plot(sorted([(k, v.get(cur2)) for k, v in data['rates'].items()], key=lambda x: x[0]),
+                        cur1=cur1, cur2=cur2)
+    if plot:
+        buf = io.BytesIO()
+        with buf:
+            plot.savefig(buf, format='png')
+            buf.seek(0)
+            bot.send_photo(message.chat.id, buf)
+    plot.close()
 
 
 bot.polling()
 
-# data = db.get_request('list', TIME_THRESHOLD)
-# print(data)
-# print('qwe{val:8.2f}'.format(val=13.1123123))
-# db.write('test', 'body test 2', datetime.datetime.now() - datetime.timedelta(days=7))
-
-# qwe = {'content_type': 'text', 'message_id': 18,
-#        'from_user': {'id': 370615464, 'is_bot': False, 'first_name': 'Роман', 'username': None, 'last_name': 'Хиленко',
-#                      'language_code': 'ru'}, 'date': 1580740102,
-#        'chat': {'type': 'private', 'last_name': 'Хиленко', 'first_name': 'Роман', 'username': None, 'id': 370615464,
-#                 'title': None, 'all_members_are_administrators': None, 'photo': None, 'description': None,
-#                 'invite_link': None, 'pinned_message': None, 'sticker_set_name': None, 'can_set_sticker_set': None},
-#        'forward_from_chat': None, 'forward_from_message_id': None, 'forward_from': None, 'forward_date': None,
-#        'reply_to_message': None, 'edit_date': None, 'media_group_id': None, 'author_signature': None,
-#        'text': '/history USD/CAD for 7 days', 'entities': '[<telebot.types.MessageEntity object at 0x7faee27e7dd0>]',
-#        'caption_entities': None, 'audio': None, 'document': None, 'photo': None, 'sticker': None, 'video': None,
-#        'video_note': None, 'voice': None, 'caption': None, 'contact': None, 'location': None, 'venue': None,
-#        'animation': None, 'new_chat_member': None, 'new_chat_members': None, 'left_chat_member': None,
-#        'new_chat_title': None, 'new_chat_photo': None, 'delete_chat_photo': None, 'group_chat_created': None,
-#        'supergroup_chat_created': None, 'channel_chat_created': None, 'migrate_to_chat_id': None,
-#        'migrate_from_chat_id': None, 'pinned_message': None, 'invoice': None, 'successful_payment': None,
-#        'connected_website': None, 'json': {'message_id': 18,
-#                                            'from': {'id': 370615464, 'is_bot': False, 'first_name': 'Роман',
-#                                                     'last_name': 'Хиленко', 'language_code': 'ru'},
-#                                            'chat': {'id': 370615464, 'first_name': 'Роман', 'last_name': 'Хиленко',
-#                                                     'type': 'private'}, 'date': 1580740102,
-#                                            'text': '/exchange $10 to CAD',
-#                                            'entities': [{'offset': 0, 'length': 9, 'type': 'bot_command'}]}}
-# rate_history(qwe)
-# print(db.get_request('request', datetime.datetime.now() + datetime.timedelta(hours=1)))
-
-# bot.reply_to(message, "Howdy, how are you doing?")
-# bot.send_message(message.chat.id, "Howdy, how are you doing?")
