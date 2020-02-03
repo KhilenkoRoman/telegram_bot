@@ -1,7 +1,10 @@
 import sqlite3
+import os
 
 
 def setup():
+    if not os.path.exists('./data'):
+        os.makedirs('./data')
     with sqlite3.connect("./data/database.sqlite3") as conn:
         cur = conn.cursor()
         cur.execute('''CREATE TABLE IF NOT EXISTS request_history (
