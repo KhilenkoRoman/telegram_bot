@@ -9,17 +9,17 @@ from plot import history_plot
 import io
 from dotenv import load_dotenv
 
+
 load_dotenv()
 KEY = os.environ.get('TELEGRAM_KEY')
-TIME_THRESHOLD = datetime.datetime.now() - datetime.timedelta(days=7)
-
+TIME_THRESHOLD = datetime.timedelta(days=7)
 bot = telebot.TeleBot(KEY)
 db.setup()
 
 
 @bot.message_handler(commands=['list', 'lst'])
 def list_rates(message):
-    data = db.get_request('list', TIME_THRESHOLD)
+    data = db.get_request('list', datetime.datetime.now() - TIME_THRESHOLD)
     if not data:
         r = requests.get('https://api.exchangeratesapi.io/latest?base=USD')
         if not r.status_code == 200:
@@ -48,7 +48,7 @@ def exchange_rate(message):
         return
     value, currency = float(res.group(3) if res.group(3) else res.group(5)), res.group(6)
 
-    data = db.get_request(currency, TIME_THRESHOLD)
+    data = db.get_request(currency, datetime.datetime.now() - TIME_THRESHOLD)
     if not data:
         r = requests.get('https://api.exchangeratesapi.io/latest?base=USD&symbols={}'.format(currency))
         if r.status_code == 400:
@@ -79,7 +79,7 @@ def rate_history(message):
         return
     cur1, cur2, time = res.group(1), res.group(2), res.group(3)
 
-    data = db.get_request(cur1 + cur2 + time, TIME_THRESHOLD)
+    data = db.get_request(cur1 + cur2 + time, datetime.datetime.now() - TIME_THRESHOLD)
     if not data:
         start_date = datetime.datetime.now().date() - datetime.timedelta(days=int(time))
         end_date = datetime.datetime.now().date()
@@ -111,5 +111,6 @@ def rate_history(message):
     plot.close()
 
 
-bot.polling()
+if __name__ == '__main__':
+    bot.polling()
 
